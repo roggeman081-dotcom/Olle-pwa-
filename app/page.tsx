@@ -48,6 +48,25 @@ type RelationMemory = {
   people?: RelationPerson | RelationPerson[] | null;
 };
 
+type SpeechRecognitionEventLike = {
+  resultIndex: number;
+  results: ArrayLike<{
+    isFinal: boolean;
+    0: { transcript: string };
+  }>;
+};
+
+type SpeechRecognitionLike = {
+  lang: string;
+  continuous: boolean;
+  interimResults: boolean;
+  onresult: ((event: SpeechRecognitionEventLike) => void) | null;
+  onerror: ((event: { error?: string }) => void) | null;
+  onend: (() => void) | null;
+  start: () => void;
+  stop: () => void;
+};
+
 function relationPerson(item: RelationMemory): RelationPerson | null {
   if (Array.isArray(item.people)) return item.people[0] ?? null;
   return item.people ?? null;
@@ -71,6 +90,8 @@ export default function Home() {
   const voiceStreamRef = useRef<MediaStream | null>(null);
   const voiceContextRef = useRef<AudioContext | null>(null);
   const voiceFrameRef = useRef<number | null>(null);
+  const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  const voiceTranscriptRef = useRef("");
 
   useEffect(() => {
     void initializeDevice();
@@ -84,13 +105,17 @@ export default function Home() {
     voiceStreamRef.current = null;
     void voiceContextRef.current?.close();
     voiceContextRef.current = null;
+    try { recognitionRef.current?.stop(); } catch {}
+    recognitionRef.current = null;
     setVoiceActive(false);
     setVoiceLevel(0.08);
   }
 
   async function toggleVoice() {
     if (voiceActive) {
+      const finalText = voiceTranscriptRef.current.trim();
       stopVoice();
+      if (finalText) await saveCaptureText(finalText);
       return;
     }
 
@@ -98,6 +123,16 @@ export default function Home() {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const AudioContextCtor = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
       if (!AudioContextCtor) throw new Error("Ljudanalys stöds inte i den här webbläsaren.");
+
+      const SpeechCtor =
+        (window as typeof window & { SpeechRecognition?: new () => SpeechRecognitionLike }).SpeechRecognition ||
+        (window as typeof window & { webkitSpeechRecognition?: new () => SpeechRecognitionLike }).webkitSpeechRecognition;
+
+      if (!SpeechCtor) {
+        stream.getTracks().forEach((track) => track.stop());
+        throw new Error("Tal-till-text stöds inte i den här webbläsaren ännu.");
+      }
+
       const context = new AudioContextCtor();
       const analyser = context.createAnalyser();
       analyser.fftSize = 256;
@@ -106,10 +141,43 @@ export default function Home() {
       source.connect(analyser);
       const data = new Uint8Array(analyser.frequencyBinCount);
 
+      const recognition = new SpeechCtor();
+      recognition.lang = "sv-SE";
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognitionRef.current = recognition;
+      voiceTranscriptRef.current = "";
+
+      recognition.onresult = (event) => {
+        let finalChunk = "";
+        let interimChunk = "";
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const result = event.results[i];
+          const chunk = result[0]?.transcript ?? "";
+          if (result.isFinal) finalChunk += chunk + " ";
+          else interimChunk += chunk + " ";
+        }
+        if (finalChunk) voiceTranscriptRef.current += finalChunk;
+        setText((voiceTranscriptRef.current + interimChunk).trim());
+      };
+
+      recognition.onerror = (event) => {
+        if (event.error && event.error !== "no-speech" && event.error !== "aborted") {
+          setMessage("Röstigenkänningen fick ett fel: " + event.error);
+        }
+      };
+
+      recognition.onend = () => {
+        if (voiceActive && recognitionRef.current === recognition) {
+          try { recognition.start(); } catch {}
+        }
+      };
+
       voiceStreamRef.current = stream;
       voiceContextRef.current = context;
       setVoiceActive(true);
       setMessage("");
+      recognition.start();
 
       const tick = () => {
         analyser.getByteFrequencyData(data);
@@ -184,21 +252,25 @@ export default function Home() {
     }
   }
 
-  async function saveCapture() {
-    const clean = text.trim();
-    if (!clean) return;
+  async function saveCaptureText(clean: string) {
+    if (!clean.trim()) return;
     setLoading(true);
     setMessage("");
     try {
-      const data = await callOlle("capture", { text: clean });
+      const data = await callOlle("capture", { text: clean.trim() });
       setText("");
-      setMessage(data.message ?? "O.L.L.E.: sparat.");
+      voiceTranscriptRef.current = "";
+      setMessage(data.message ?? "O.L.L.E.: sparat och sorterat.");
       await loadDashboard();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "O.L.L.E. kunde inte spara.");
     } finally {
       setLoading(false);
     }
+  }
+
+  async function saveCapture() {
+    await saveCaptureText(text);
   }
 
   async function markRadarDone(id: string) {
@@ -253,7 +325,7 @@ export default function Home() {
             </span>
             <span className="olle-call-copy">
               <strong>{voiceActive ? "Jag lyssnar…" : "Prata med O.L.L.E."}</strong>
-              <small>{voiceActive ? "Röstindikatorn reagerar på din röst." : "Tryck här och prata. O.L.L.E. håller ordning på resten."}</small>
+              <small>{voiceActive ? "Jag skriver det du säger. Tryck igen när du är klar — då sorterar jag det direkt." : "Tryck här och prata. Jag transkriberar och sorterar automatiskt till rätt del av hubben."}</small>
             </span>
             <span className="olle-voice-state">{voiceActive ? "AKTIV" : "RÖST"}</span>
           </button>
