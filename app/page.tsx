@@ -1,8 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase/client";
-import { interpretCapture, PersonRef, ProjectRef } from "@/lib/jarvis/interpret";
+import { useEffect, useState } from "react";
 
 type CaptureItem = {
   id: string;
@@ -55,18 +53,11 @@ function relationPerson(item: RelationMemory): RelationPerson | null {
   return item.people ?? null;
 }
 
-function localDateString() {
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
-}
+const OLLE_API = "https://hpekajbndztytppominl.supabase.co/functions/v1/olle-mobile";
+const DEVICE_KEY = "olle_device_token_v1";
 
 export default function Home() {
-  const [userId, setUserId] = useState<string | null>(null);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [activated, setActivated] = useState<boolean | null>(null);
   const [text, setText] = useState("");
   const [items, setItems] = useState<CaptureItem[]>([]);
   const [radar, setRadar] = useState<BriefingItem[]>([]);
@@ -77,344 +68,100 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setUserId(data.session?.user.id ?? null);
-    });
-
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUserId(session?.user.id ?? null);
-    });
-
-    return () => listener.subscription.unsubscribe();
+    void initializeDevice();
   }, []);
 
-  useEffect(() => {
-    if (!userId) {
-      setItems([]);
-      setRadar([]);
-      setOngoing([]);
-      setProjects([]);
-      setRelations([]);
-      return;
+  async function callOlle(action: string, payload: Record<string, unknown> = {}, tokenOverride?: string) {
+    const token = tokenOverride ?? window.localStorage.getItem(DEVICE_KEY) ?? "";
+    const response = await fetch(OLLE_API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...(token ? { "X-Olle-Device": token } : {}) },
+      body: JSON.stringify({ action, ...payload }),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error ?? "O.L.L.E. svarade med ett fel.");
+    return data;
+  }
+
+  async function initializeDevice() {
+    setMessage("");
+    let deviceToken = window.localStorage.getItem(DEVICE_KEY);
+    const params = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+    const claimToken = params.get("activate");
+
+    if (!deviceToken && claimToken) {
+      try {
+        const data = await callOlle("claim", { claimToken, label: "Rogges iPhone" }, "");
+        deviceToken = String(data.deviceToken);
+        window.localStorage.setItem(DEVICE_KEY, deviceToken);
+        window.history.replaceState(null, "", window.location.pathname + window.location.search);
+      } catch (error) {
+        setActivated(false);
+        setMessage(error instanceof Error ? error.message : "Aktiveringen misslyckades.");
+        return;
+      }
     }
-    loadDashboard();
-  }, [userId]);
 
-  async function loadDashboard() {
-    const today = localDateString();
-
-    const [capturesResult, radarResult, ongoingResult, projectsResult, relationsResult] = await Promise.all([
-      supabase
-        .from("capture_inbox")
-        .select("id, raw_text, status, detected_type, person_hint, created_at")
-        .order("created_at", { ascending: false })
-        .limit(12),
-      supabase
-        .from("briefing_items")
-        .select("id, title, content, category, priority, briefing_date, is_done")
-        .eq("briefing_date", today)
-        .eq("is_done", false)
-        .order("priority", { ascending: true })
-        .limit(8),
-      supabase
-        .from("ongoing")
-        .select("id, title, status, follow_up_at, due_at")
-        .in("status", ["open", "waiting"])
-        .order("updated_at", { ascending: false })
-        .limit(8),
-      supabase
-        .from("projects")
-        .select("id, title, status, next_step, due_at, updated_at")
-        .in("status", ["active", "waiting"])
-        .order("updated_at", { ascending: false })
-        .limit(8),
-      supabase
-        .from("memories")
-        .select("id, title, content, created_at, people!memories_person_id_fkey(name, relation)")
-        .not("person_id", "is", null)
-        .order("created_at", { ascending: false })
-        .limit(12),
-    ]);
-
-    const firstError = capturesResult.error || radarResult.error || ongoingResult.error || projectsResult.error || relationsResult.error;
-    if (firstError) {
-      setMessage(firstError.message);
+    if (!deviceToken) {
+      setActivated(false);
+      setMessage("Den här enheten är inte aktiverad ännu.");
       return;
     }
 
-    setItems((capturesResult.data ?? []) as CaptureItem[]);
-    setRadar((radarResult.data ?? []) as BriefingItem[]);
-    setOngoing((ongoingResult.data ?? []) as OngoingItem[]);
-    setProjects((projectsResult.data ?? []) as ProjectItem[]);
-
-    const relationRows = (relationsResult.data ?? []) as RelationMemory[];
-    setRelations(
-      relationRows
-        .filter((row) => {
-          const rel = (relationPerson(row)?.relation ?? "").toLocaleLowerCase("sv-SE");
-          return /(fru|man|partner|son|dotter|barn|familj|vän|kompis|mamma|pappa|bror|syster)/.test(rel);
-        })
-        .slice(0, 6)
-    );
+    setActivated(true);
+    await loadDashboard(deviceToken);
   }
 
-  async function signIn(event: FormEvent) {
-    event.preventDefault();
-    setLoading(true);
-    setMessage("");
-
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
-
-    if (error) setMessage(error.message);
-  }
-
-  async function signUp() {
-    setLoading(true);
-    setMessage("");
-
-    const { error } = await supabase.auth.signUp({ email, password });
-    setLoading(false);
-
-    if (error) setMessage(error.message);
-    else setMessage("Kontot är skapat. Kontrollera mejlen om Supabase kräver bekräftelse.");
+  async function loadDashboard(tokenOverride?: string) {
+    try {
+      const data = await callOlle("dashboard", {}, tokenOverride);
+      setItems((data.items ?? []) as CaptureItem[]);
+      setRadar((data.radar ?? []) as BriefingItem[]);
+      setOngoing((data.ongoing ?? []) as OngoingItem[]);
+      setProjects((data.projects ?? []) as ProjectItem[]);
+      const relationRows = (data.relations ?? []) as RelationMemory[];
+      setRelations(relationRows.filter((row) => {
+        const rel = (relationPerson(row)?.relation ?? "").toLocaleLowerCase("sv-SE");
+        return /(fru|man|partner|son|dotter|barn|familj|vän|kompis|mamma|pappa|bror|syster)/.test(rel);
+      }).slice(0, 6));
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Kunde inte ladda O.L.L.E.");
+    }
   }
 
   async function saveCapture() {
     const clean = text.trim();
-    if (!clean || !userId) return;
-
+    if (!clean) return;
     setLoading(true);
     setMessage("");
-
-    const [peopleResult, projectsResult] = await Promise.all([
-      supabase.from("people").select("id, name, relation"),
-      supabase.from("projects").select("id, title, status, project_type").in("status", ["active", "waiting"]),
-    ]);
-
-    if (peopleResult.error || projectsResult.error) {
-      setLoading(false);
-      setMessage((peopleResult.error || projectsResult.error)?.message ?? "Kunde inte läsa O.L.L.E.-minnet.");
-      return;
-    }
-
-    const people = (peopleResult.data ?? []) as PersonRef[];
-    const knownProjects = (projectsResult.data ?? []) as ProjectRef[];
-    let interpretation = interpretCapture(clean, people, knownProjects);
-    let learnedPerson: PersonRef | undefined;
-    let learnedProject: ProjectRef | undefined;
-
-    if (!interpretation.person && interpretation.discoveredPerson) {
-      const { data: createdPerson, error: personCreateError } = await supabase
-        .from("people")
-        .insert({
-          owner_id: userId,
-          name: interpretation.discoveredPerson.name,
-          relation: interpretation.discoveredPerson.relation,
-          notes: "Skapad automatiskt av O.L.L.E. från en tydlig relationsfras.",
-        })
-        .select("id, name, relation")
-        .single();
-
-      if (personCreateError) {
-        setLoading(false);
-        setMessage("O.L.L.E. förstod personen men kunde inte spara den: " + personCreateError.message);
-        return;
-      }
-
-      learnedPerson = createdPerson as PersonRef;
-      interpretation = {
-        ...interpretation,
-        person: learnedPerson,
-        personHint: learnedPerson.name,
-      };
-    }
-
-    if (!interpretation.project && interpretation.discoveredProject) {
-      const { data: createdProject, error: projectCreateError } = await supabase
-        .from("projects")
-        .insert({
-          owner_id: userId,
-          title: interpretation.discoveredProject.title,
-          project_type: interpretation.discoveredProject.projectType,
-          status: "active",
-          priority: interpretation.priority,
-          description: clean,
-          next_step: interpretation.kind === "ongoing" ? interpretation.title : null,
-        })
-        .select("id, title, status, project_type")
-        .single();
-
-      if (projectCreateError) {
-        setLoading(false);
-        setMessage("O.L.L.E. förstod projektet men kunde inte spara det: " + projectCreateError.message);
-        return;
-      }
-
-      learnedProject = createdProject as ProjectRef;
-      interpretation = {
-        ...interpretation,
-        project: learnedProject,
-        projectHint: learnedProject.title,
-      };
-    }
-
-    const { data: capture, error: captureError } = await supabase
-      .from("capture_inbox")
-      .insert({
-        owner_id: userId,
-        raw_text: clean,
-        person_hint: interpretation.personHint ?? null,
-        project_hint: interpretation.projectHint ?? null,
-        detected_type: interpretation.kind,
-        status: "new",
-        processed: false,
-      })
-      .select("id")
-      .single();
-
-    if (captureError) {
-      setLoading(false);
-      setMessage(captureError.message);
-      return;
-    }
-
-    let routeError: { message: string } | null = null;
-
-    if (interpretation.kind === "ongoing") {
-      const { data: ongoingRow, error } = await supabase
-        .from("ongoing")
-        .insert({
-          owner_id: userId,
-          person_id: interpretation.person?.id ?? null,
-          project_id: interpretation.project?.id ?? null,
-          title: interpretation.title,
-          description: clean,
-          next_step: interpretation.title,
-          status: "open",
-          priority: interpretation.priority,
-          follow_up_at: interpretation.followUpAt ?? null,
-          due_at: interpretation.dueAt ?? null,
-        })
-        .select("id")
-        .single();
-
-      routeError = error;
-
-      if (!error && interpretation.briefingDate) {
-        const { error: briefingError } = await supabase.from("briefing_items").insert({
-          owner_id: userId,
-          person_id: interpretation.person?.id ?? null,
-          project_id: interpretation.project?.id ?? null,
-          ongoing_id: ongoingRow?.id ?? null,
-          title: interpretation.title,
-          content: clean,
-          briefing_date: interpretation.briefingDate,
-          category: interpretation.category,
-          priority: interpretation.priority,
-          is_done: false,
-        });
-        routeError = briefingError;
-      }
-    } else {
-      const { error } = await supabase.from("memories").insert({
-        owner_id: userId,
-        person_id: interpretation.person?.id ?? null,
-        project_id: interpretation.project?.id ?? null,
-        title: interpretation.title,
-        content: clean,
-        memory_type: interpretation.category,
-        source: "kollen_capture",
-        remind_at: interpretation.followUpAt ?? null,
-        is_active: true,
-      });
-      routeError = error;
-    }
-
-    if (routeError) {
-      await supabase
-        .from("capture_inbox")
-        .update({ status: "error", processed: false })
-        .eq("id", capture.id);
-
-      setLoading(false);
-      setMessage("O.L.L.E. sparade texten men O.L.L.E. kunde inte sortera den: " + routeError.message);
+    try {
+      const data = await callOlle("capture", { text: clean });
+      setText("");
+      setMessage(data.message ?? "O.L.L.E.: sparat.");
       await loadDashboard();
-      return;
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "O.L.L.E. kunde inte spara.");
+    } finally {
+      setLoading(false);
     }
-
-    await supabase
-      .from("capture_inbox")
-      .update({ status: "processed", processed: true })
-      .eq("id", capture.id);
-
-    setText("");
-    setLoading(false);
-
-    const personText = interpretation.person ? ` · ${interpretation.person.name}` : "";
-    const projectText = interpretation.project ? ` · projekt ${interpretation.project.title}` : "";
-    const learnedBits = [
-      learnedPerson ? `lärde mig vem ${learnedPerson.name} är` : "",
-      learnedProject ? `lärde mig projektet ${learnedProject.title}` : "",
-    ].filter(Boolean);
-    const learnedText = learnedBits.length ? ` · ${learnedBits.join(" · ")}` : "";
-
-    setMessage(
-      interpretation.kind === "ongoing"
-        ? `O.L.L.E.: lagt som pågående${personText}${projectText}${interpretation.briefingDate ? " · till radarn" : ""}${learnedText}.`
-        : `O.L.L.E.: sparat som minne${personText}${projectText}${learnedText}.`
-    );
-
-    await loadDashboard();
   }
 
   async function markRadarDone(id: string) {
-    await supabase.from("briefing_items").update({ is_done: true }).eq("id", id);
-    await loadDashboard();
+    try {
+      await callOlle("radarDone", { id });
+      await loadDashboard();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Kunde inte markera som klar.");
+    }
   }
 
-  async function signOut() {
-    await supabase.auth.signOut();
-    setMessage("");
+
+  if (activated === null) {
+    return <main className="shell"><div className="container"><header className="header"><div className="brand">O.L.L.E.</div><div className="status"><span className="dot" />Startar</div></header><section className="card"><p className="message">Startar O.L.L.E.…</p></section></div></main>;
   }
 
-  if (!userId) {
-    return (
-      <main className="shell">
-        <div className="container">
-          <header className="header">
-            <div className="brand">O.L.L.E.</div>
-            <div className="status"><span className="dot" />Redo</div>
-          </header>
-
-          <section className="card">
-            <form className="stack" onSubmit={signIn}>
-              <div>
-                <h1 style={{ marginTop: 0 }}>Logga in</h1>
-                <p className="message">Din privata O.L.L.E.-data ligger bakom ditt konto.</p>
-              </div>
-
-              <div className="stack">
-                <label htmlFor="email">E-post</label>
-                <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-              </div>
-
-              <div className="stack">
-                <label htmlFor="password">Lösenord</label>
-                <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
-              </div>
-
-              <div className="actions">
-                <button className="primary" type="submit" disabled={loading}>Logga in</button>
-                <button className="secondary" type="button" onClick={signUp} disabled={loading}>Skapa konto</button>
-              </div>
-
-              {message && <div className="message">{message}</div>}
-            </form>
-          </section>
-        </div>
-      </main>
-    );
+  if (!activated) {
+    return <main className="shell"><div className="container"><header className="header"><div className="brand">O.L.L.E.</div><div className="status"><span className="dot" />Skyddad</div></header><section className="card"><h1 style={{ marginTop: 0 }}>Aktivera den här iPhonen</h1><p className="message">{message || "Öppna din privata O.L.L.E.-aktiveringslänk på den här iPhonen."}</p></section></div></main>;
   }
 
   return (
@@ -425,7 +172,6 @@ export default function Home() {
             <div className="hub-logo">ROGGE <span>HUB</span></div>
             <div className="hub-tagline">DITT LIV — EN PLAN</div>
           </div>
-          <button className="hub-logout" onClick={signOut}>Logga ut</button>
         </header>
 
         <section className="hub-hero">
