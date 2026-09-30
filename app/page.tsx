@@ -329,12 +329,12 @@ export default function Home() {
 
           <div className="mindmap-stage" aria-label="O.L.L.E. mindmap">
             <svg className="mindmap-links" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-              <path d="M50 54 C38 50 26 42 12 36" />
-              <path d="M50 54 C45 38 38 22 28 11" />
-              <path d="M50 54 C55 38 62 22 72 11" />
-              <path d="M50 54 C62 50 74 42 88 36" />
-              <path d="M50 54 C42 68 34 80 22 88" />
-              <path d="M50 54 C58 68 66 80 78 88" />
+              <path className="spoke spoke-brief" d="M50 50 C36 48 23 42 11 35" />
+              <path className="spoke spoke-work" d="M50 50 C43 34 35 18 26 9" />
+              <path className="spoke spoke-family" d="M50 50 C57 34 65 18 74 9" />
+              <path className="spoke spoke-home" d="M50 50 C64 48 77 42 89 35" />
+              <path className="spoke spoke-ai" d="M50 50 C41 67 31 82 18 90" />
+              <path className="spoke spoke-money" d="M50 50 C59 67 69 82 82 90" />
             </svg>
 
             <button className="mindmap-node node-today branch-brief" type="button" onClick={() => document.getElementById("today")?.scrollIntoView({ behavior: "smooth", block: "center" })}>
