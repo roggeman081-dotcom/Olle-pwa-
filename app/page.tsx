@@ -337,23 +337,23 @@ export default function Home() {
               <path d="M50 54 C58 68 66 80 78 88" />
             </svg>
 
-            <button className="mindmap-node node-today" type="button" onClick={() => document.getElementById("today")?.scrollIntoView({ behavior: "smooth", block: "center" })}>
-              <span>Idag</span><strong>{radar.length}</strong>
+            <button className="mindmap-node node-today branch-brief" type="button" onClick={() => document.getElementById("today")?.scrollIntoView({ behavior: "smooth", block: "center" })}>
+              <span><b>Brief</b><small>Idag & radar</small></span><strong>◎</strong>
             </button>
-            <button className="mindmap-node node-follow" type="button" onClick={() => document.getElementById("follow")?.scrollIntoView({ behavior: "smooth", block: "center" })}>
-              <span>Följ upp</span><strong>{ongoing.length}</strong>
+            <button className="mindmap-node node-follow branch-work" type="button" onClick={() => document.getElementById("follow")?.scrollIntoView({ behavior: "smooth", block: "center" })}>
+              <span><b>Jobb</b><small>Följ upp</small></span><strong>⚡</strong>
             </button>
-            <button className="mindmap-node node-family" type="button" onClick={() => document.getElementById("family")?.scrollIntoView({ behavior: "smooth", block: "center" })}>
-              <span>Familj</span><strong>{relations.length}</strong>
+            <button className="mindmap-node node-family branch-family" type="button" onClick={() => document.getElementById("family")?.scrollIntoView({ behavior: "smooth", block: "center" })}>
+              <span><b>Familj</b><small>Personer & fritid</small></span><strong>⌂</strong>
             </button>
-            <button className="mindmap-node node-projects" type="button" onClick={() => document.getElementById("projects")?.scrollIntoView({ behavior: "smooth", block: "center" })}>
-              <span>Hem & projekt</span><strong>{projects.length}</strong>
+            <button className="mindmap-node node-projects branch-home" type="button" onClick={() => document.getElementById("projects")?.scrollIntoView({ behavior: "smooth", block: "center" })}>
+              <span><b>Hem & projekt</b><small>Pågående</small></span><strong>◇</strong>
             </button>
-            <button className="mindmap-node node-latest" type="button" onClick={() => document.getElementById("more")?.scrollIntoView({ behavior: "smooth", block: "center" })}>
-              <span>Senaste</span><strong>{items.length}</strong>
+            <button className="mindmap-node node-latest branch-money" type="button" onClick={() => document.getElementById("more")?.scrollIntoView({ behavior: "smooth", block: "center" })}>
+              <span><b>Ekonomi</b><small>Affärer & inköp</small></span><strong>↗</strong>
             </button>
-            <button className="mindmap-node node-dots" type="button" onClick={() => document.getElementById("olle")?.scrollIntoView({ behavior: "smooth", block: "center" })}>
-              <span>Dots</span><strong>•••</strong>
+            <button className="mindmap-node node-dots branch-ai" type="button" onClick={() => document.getElementById("olle")?.scrollIntoView({ behavior: "smooth", block: "center" })}>
+              <span><b>AI & idéer</b><small>Testa & fånga</small></span><strong>✦</strong>
             </button>
 
             <button className={`mindmap-olle ${voiceActive ? "is-listening" : ""}`} type="button" onClick={toggleVoice}>
