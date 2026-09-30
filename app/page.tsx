@@ -229,7 +229,7 @@ export default function Home() {
           </div>
         </header>
 
-        <section className="hub-hero">
+        <section className="hub-hero" id="start">
           <div className="hub-hero-top">
             <div>
               <h1>Hej Rogge.</h1>
@@ -260,7 +260,7 @@ export default function Home() {
         </section>
 
         <section className="hub-grid hub-grid-main">
-          <article className="hub-card hub-card-today">
+          <article className="hub-card hub-card-today" id="today">
             <div className="hub-card-title">
               <div>
                 <span className="hub-icon blue">▣</span>
@@ -316,7 +316,7 @@ export default function Home() {
             </div>
           </article>
 
-          <article className="hub-card hub-card-family">
+          <article className="hub-card hub-card-family" id="family">
             <div className="hub-card-title">
               <div>
                 <span className="hub-icon green">◉</span>
@@ -343,7 +343,7 @@ export default function Home() {
         </section>
 
         <section className="hub-grid hub-grid-secondary">
-          <article className="hub-card brain-card">
+          <article className="hub-card brain-card" id="olle">
             <div className="hub-card-title">
               <div>
                 <span className="hub-icon violet">◌</span>
@@ -390,7 +390,7 @@ export default function Home() {
           </article>
         </section>
 
-        <section className="hub-card hub-latest">
+        <section className="hub-card hub-latest" id="more">
           <div className="hub-card-title">
             <div>
               <span className="hub-icon blue">•••</span>
@@ -412,13 +412,24 @@ export default function Home() {
         </section>
 
         <nav className="hub-bottom-nav" aria-label="Snabbnavigation">
-          <button><span>⌂</span><small>Start</small></button>
-          <button><span>▣</span><small>Idag</small></button>
-          <button className="hub-nav-olle" onClick={() => document.getElementById("brainDump")?.focus()}>
+          <button type="button" onClick={() => document.getElementById("start")?.scrollIntoView({ behavior: "smooth", block: "start" })}>
+            <span>⌂</span><small>Start</small>
+          </button>
+          <button type="button" onClick={() => document.getElementById("today")?.scrollIntoView({ behavior: "smooth", block: "center" })}>
+            <span>▣</span><small>Idag</small>
+          </button>
+          <button className="hub-nav-olle" type="button" onClick={() => {
+            document.getElementById("olle")?.scrollIntoView({ behavior: "smooth", block: "center" });
+            window.setTimeout(() => document.getElementById("brainDump")?.focus(), 420);
+          }}>
             <span>●</span><small>O.L.L.E.</small>
           </button>
-          <button><span>◉</span><small>Familj</small></button>
-          <button><span>•••</span><small>Mer</small></button>
+          <button type="button" onClick={() => document.getElementById("family")?.scrollIntoView({ behavior: "smooth", block: "center" })}>
+            <span>◉</span><small>Familj</small>
+          </button>
+          <button type="button" onClick={() => document.getElementById("more")?.scrollIntoView({ behavior: "smooth", block: "center" })}>
+            <span>•••</span><small>Mer</small>
+          </button>
         </nav>
       </div>
     </main>
