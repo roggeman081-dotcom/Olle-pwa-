@@ -1,5 +1,5 @@
 const BASE = "/Olle-pwa-";
-const CACHE = "olle-shell-v5";
+const CACHE = "olle-shell-v6";
 const SHELL = [
   `${BASE}/`,
   `${BASE}/brief/`,
