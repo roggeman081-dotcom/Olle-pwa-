@@ -223,7 +223,7 @@ input:focus, textarea:focus {
 }
 
 .hub-hero-top,
-.jarvis-call {
+.olle-call {
   position: relative;
   z-index: 1;
 }
@@ -276,7 +276,7 @@ input:focus, textarea:focus {
   line-height: 1;
 }
 
-.jarvis-call {
+.olle-call {
   width: 100%;
   min-height: 86px;
   margin-top: 54px;
@@ -298,7 +298,7 @@ input:focus, textarea:focus {
     inset 0 0 28px rgba(49,147,255,.12);
 }
 
-.jarvis-mic {
+.olle-mic {
   width: 54px;
   height: 54px;
   display: grid;
@@ -311,28 +311,28 @@ input:focus, textarea:focus {
   font-size: 11px;
 }
 
-.jarvis-call-copy {
+.olle-call-copy {
   min-width: 0;
 }
 
-.jarvis-call-copy strong,
-.jarvis-call-copy small {
+.olle-call-copy strong,
+.olle-call-copy small {
   display: block;
 }
 
-.jarvis-call-copy strong {
+.olle-call-copy strong {
   font-size: 20px;
   letter-spacing: -.02em;
 }
 
-.jarvis-call-copy small {
+.olle-call-copy small {
   margin-top: 4px;
   color: #bfd7ec;
   font-size: 11px;
   line-height: 1.35;
 }
 
-.jarvis-arrow {
+.olle-arrow {
   color: #bfe4ff;
   font-size: 24px;
 }
@@ -602,13 +602,13 @@ input:focus, textarea:focus {
   font-size: 9px;
 }
 
-.hub-bottom-nav .hub-nav-jarvis {
+.hub-bottom-nav .hub-nav-olle {
   border: 1px solid rgba(51,155,255,.72);
   background: radial-gradient(circle,#258eff 0 9%,#184f8f 35%,#0b294f 78%);
   box-shadow: 0 0 20px rgba(33,135,255,.22);
 }
 
-.hub-bottom-nav .hub-nav-jarvis small {
+.hub-bottom-nav .hub-nav-olle small {
   color: #dceeff;
 }
 
@@ -632,7 +632,7 @@ input:focus, textarea:focus {
     font-size: 17px;
   }
 
-  .jarvis-call {
+  .olle-call {
     max-width: 620px;
     margin: 70px auto 0;
   }
