@@ -86,12 +86,14 @@ export default function Home() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [voiceActive, setVoiceActive] = useState(false);
-  const [voiceLevel, setVoiceLevel] = useState(0.08);\n  const [assistantReply, setAssistantReply] = useState("");
+  const [voiceLevel, setVoiceLevel] = useState(0.08);
+  const [assistantReply, setAssistantReply] = useState("");
   const voiceStreamRef = useRef<MediaStream | null>(null);
   const voiceContextRef = useRef<AudioContext | null>(null);
   const voiceFrameRef = useRef<number | null>(null);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
-  const voiceTranscriptRef = useRef("");\n  const voiceActiveRef = useRef(false);
+  const voiceTranscriptRef = useRef("");
+  const voiceActiveRef = useRef(false);
 
   useEffect(() => {
     void initializeDevice();
