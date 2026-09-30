@@ -314,12 +314,14 @@ export default function Home() {
           </div>
 
           <div className="mindmap-stage" aria-label="O.L.L.E. mindmap">
-            <span className="mindmap-line line-today" />
-            <span className="mindmap-line line-follow" />
-            <span className="mindmap-line line-family" />
-            <span className="mindmap-line line-projects" />
-            <span className="mindmap-line line-latest" />
-            <span className="mindmap-line line-dots" />
+            <svg className="mindmap-links" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+              <path d="M50 54 C38 50 26 42 12 36" />
+              <path d="M50 54 C45 38 38 22 28 11" />
+              <path d="M50 54 C55 38 62 22 72 11" />
+              <path d="M50 54 C62 50 74 42 88 36" />
+              <path d="M50 54 C42 68 34 80 22 88" />
+              <path d="M50 54 C58 68 66 80 78 88" />
+            </svg>
 
             <button className="mindmap-node node-today" type="button" onClick={() => document.getElementById("today")?.scrollIntoView({ behavior: "smooth", block: "center" })}>
               <span>Idag</span><strong>{radar.length}</strong>
@@ -355,6 +357,10 @@ export default function Home() {
                 <small>{voiceActive ? "Tryck igen när du är klar." : "Jag fångar, förstår och sorterar."}</small>
               </span>
             </button>
+
+            <div className={`mindmap-live-text ${voiceActive ? "is-live" : ""}`}>
+              {voiceActive ? (text || "Jag lyssnar…") : "Tryck på O.L.L.E. och börja prata"}
+            </div>
           </div>
         </section>
 

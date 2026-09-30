@@ -1148,3 +1148,87 @@ input:focus, textarea:focus {
   }
   .mindmap-olle-copy strong{font-size:20px}
 }
+
+
+/* ===== O.L.L.E. Mindmap V2 — complete links + live voice feedback ===== */
+.mindmap-line{display:none!important}
+.mindmap-stage{
+  min-height:470px;
+  overflow:visible;
+}
+.mindmap-links{
+  position:absolute;
+  inset:0;
+  z-index:1;
+  width:100%;
+  height:100%;
+  overflow:visible;
+  pointer-events:none;
+}
+.mindmap-links path{
+  fill:none;
+  stroke:rgba(220,229,240,.38);
+  stroke-width:.42;
+  vector-effect:non-scaling-stroke;
+  filter:drop-shadow(0 0 4px rgba(185,207,236,.16));
+}
+.mindmap-node{z-index:3}
+.node-today{left:4%;top:31%}
+.node-follow{left:20%;top:5%}
+.node-family{right:20%;top:5%}
+.node-projects{right:4%;top:31%}
+.node-dots{left:12%;bottom:5%}
+.node-latest{right:12%;bottom:5%}
+.mindmap-olle{top:54%;z-index:4}
+.mindmap-live-text{
+  position:absolute;
+  z-index:5;
+  left:50%;
+  top:76%;
+  transform:translateX(-50%);
+  width:min(520px,58%);
+  min-height:42px;
+  padding:10px 14px;
+  border:1px solid rgba(255,255,255,.11);
+  border-radius:14px;
+  background:rgba(30,35,40,.72);
+  color:#aeb7c0;
+  font-size:12px;
+  line-height:1.35;
+  text-align:center;
+  backdrop-filter:blur(14px);
+  transition:.18s ease;
+}
+.mindmap-live-text.is-live{
+  color:#f6f8fa;
+  border-color:rgba(184,211,244,.36);
+  background:rgba(42,49,56,.90);
+  box-shadow:0 0 28px rgba(122,166,220,.12);
+}
+.mindmap-olle.is-listening .olle-voice-orb{
+  transform:scale(1.05);
+}
+.mindmap-olle.is-listening{
+  animation:mindmapListenGlow 1.8s ease-in-out infinite;
+}
+@keyframes mindmapListenGlow{
+  0%,100%{box-shadow:0 0 0 1px rgba(182,211,248,.10),0 0 34px rgba(117,165,224,.16),inset 0 1px 0 rgba(255,255,255,.16)}
+  50%{box-shadow:0 0 0 1px rgba(182,211,248,.18),0 0 58px rgba(117,165,224,.30),inset 0 1px 0 rgba(255,255,255,.18)}
+}
+@media(max-width:620px){
+  .mindmap-stage{min-height:500px}
+  .mindmap-node{
+    min-width:96px;
+    max-width:118px;
+    min-height:50px;
+    padding:8px 9px;
+  }
+  .node-today{left:0;top:31%}
+  .node-follow{left:4%;top:5%}
+  .node-family{right:4%;top:5%}
+  .node-projects{right:0;top:31%}
+  .node-dots{left:4%;bottom:4%}
+  .node-latest{right:4%;bottom:4%}
+  .mindmap-olle{top:53%;width:198px;min-height:154px}
+  .mindmap-live-text{top:74%;width:62%;font-size:11px;padding:8px 10px}
+}
