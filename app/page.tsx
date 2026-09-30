@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type CaptureItem = {
   id: string;
@@ -66,10 +66,65 @@ export default function Home() {
   const [relations, setRelations] = useState<RelationMemory[]>([]);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [voiceActive, setVoiceActive] = useState(false);
+  const [voiceLevel, setVoiceLevel] = useState(0.08);
+  const voiceStreamRef = useRef<MediaStream | null>(null);
+  const voiceContextRef = useRef<AudioContext | null>(null);
+  const voiceFrameRef = useRef<number | null>(null);
 
   useEffect(() => {
     void initializeDevice();
+    return () => stopVoice();
   }, []);
+
+  function stopVoice() {
+    if (voiceFrameRef.current) cancelAnimationFrame(voiceFrameRef.current);
+    voiceFrameRef.current = null;
+    voiceStreamRef.current?.getTracks().forEach((track) => track.stop());
+    voiceStreamRef.current = null;
+    void voiceContextRef.current?.close();
+    voiceContextRef.current = null;
+    setVoiceActive(false);
+    setVoiceLevel(0.08);
+  }
+
+  async function toggleVoice() {
+    if (voiceActive) {
+      stopVoice();
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const AudioContextCtor = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (!AudioContextCtor) throw new Error("Ljudanalys stöds inte i den här webbläsaren.");
+      const context = new AudioContextCtor();
+      const analyser = context.createAnalyser();
+      analyser.fftSize = 256;
+      analyser.smoothingTimeConstant = 0.72;
+      const source = context.createMediaStreamSource(stream);
+      source.connect(analyser);
+      const data = new Uint8Array(analyser.frequencyBinCount);
+
+      voiceStreamRef.current = stream;
+      voiceContextRef.current = context;
+      setVoiceActive(true);
+      setMessage("");
+
+      const tick = () => {
+        analyser.getByteFrequencyData(data);
+        let sum = 0;
+        for (const value of data) sum += value;
+        const normalized = Math.min(1, Math.max(0.06, sum / data.length / 95));
+        setVoiceLevel(normalized);
+        voiceFrameRef.current = requestAnimationFrame(tick);
+      };
+      tick();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Mikrofonen kunde inte startas.");
+      stopVoice();
+    }
+  }
 
   async function callOlle(action: string, payload: Record<string, unknown> = {}, tokenOverride?: string) {
     const token = tokenOverride ?? window.localStorage.getItem(DEVICE_KEY) ?? "";
@@ -169,16 +224,16 @@ export default function Home() {
       <div className="hub-app">
         <header className="hub-header">
           <div>
-            <div className="hub-logo">ROGGE <span>HUB</span></div>
-            <div className="hub-tagline">DITT LIV — EN PLAN</div>
+            <div className="hub-logo">O.L.L.E. <span>ROGGE HUB</span></div>
+            <div className="hub-tagline">PERSONAL INTELLIGENCE</div>
           </div>
         </header>
 
         <section className="hub-hero">
           <div className="hub-hero-top">
             <div>
-              <h1>Hej Roger!</h1>
-              <p>Här är din dag. Jag håller koll på det som är viktigt.</p>
+              <h1>Hej Rogge.</h1>
+              <p>Det viktiga först. Resten håller jag i bakgrunden tills du behöver det.</p>
             </div>
             <div className="hub-clock">
               <span>{new Date().toLocaleDateString("sv-SE", { weekday: "short", day: "numeric", month: "short" })}</span>
@@ -186,13 +241,21 @@ export default function Home() {
             </div>
           </div>
 
-          <button className="olle-call" type="button" onClick={() => document.getElementById("brainDump")?.focus()}>
-            <span className="olle-mic">●</span>
-            <span className="olle-call-copy">
-              <strong>Prata med O.L.L.E.</strong>
-              <small>Säg vad du tänker — jag förstår, sorterar och följer upp.</small>
+          <button className={`olle-call ${voiceActive ? "is-listening" : ""}`} type="button" onClick={toggleVoice}>
+            <span className="olle-voice-orb" aria-hidden="true">
+              <span className="voice-ring voice-ring-one" />
+              <span className="voice-ring voice-ring-two" />
+              <span className="voice-bars">
+                {[0.72, 1, 0.82, 1.16, 0.9].map((factor, index) => (
+                  <i key={index} style={{ height: `${Math.max(6, voiceLevel * 38 * factor)}px` }} />
+                ))}
+              </span>
             </span>
-            <span className="olle-arrow">→</span>
+            <span className="olle-call-copy">
+              <strong>{voiceActive ? "Jag lyssnar…" : "Prata med O.L.L.E."}</strong>
+              <small>{voiceActive ? "Röstindikatorn reagerar på din röst." : "Tryck här och prata. O.L.L.E. håller ordning på resten."}</small>
+            </span>
+            <span className="olle-voice-state">{voiceActive ? "AKTIV" : "RÖST"}</span>
           </button>
         </section>
 
