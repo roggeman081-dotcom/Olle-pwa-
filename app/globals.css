@@ -943,3 +943,18 @@ input:focus, textarea:focus {
   .hub-hero{padding:34px 34px 26px}
   .hub-grid{gap:14px}
 }
+
+
+/* O.L.L.E. send button — brighter Tesla-style treatment */
+.hub-send{
+  background:linear-gradient(180deg,#ffffff 0%,#f5f7f9 48%,#e8edf2 100%);
+  color:#0b0e11;
+  border:1px solid rgba(255,255,255,.58);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.95),
+    0 8px 22px rgba(0,0,0,.14),
+    0 0 0 1px rgba(255,255,255,.08);
+}
+.hub-send:hover{
+  background:linear-gradient(180deg,#ffffff 0%,#fafbfc 50%,#eef2f5 100%);
+}
