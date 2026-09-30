@@ -301,11 +301,11 @@ export default function Home() {
           </div>
         </header>
 
-        <section className="hub-hero" id="start">
+        <section className="hub-hero mindmap-hero" id="start">
           <div className="hub-hero-top">
             <div>
               <h1>Hej Rogge.</h1>
-              <p>Det viktiga först. Resten håller jag i bakgrunden tills du behöver det.</p>
+              <p>Prata med O.L.L.E. i mitten. Resten sorteras runt dig.</p>
             </div>
             <div className="hub-clock">
               <span>{new Date().toLocaleDateString("sv-SE", { weekday: "short", day: "numeric", month: "short" })}</span>
@@ -313,22 +313,49 @@ export default function Home() {
             </div>
           </div>
 
-          <button className={`olle-call ${voiceActive ? "is-listening" : ""}`} type="button" onClick={toggleVoice}>
-            <span className="olle-voice-orb" aria-hidden="true">
-              <span className="voice-ring voice-ring-one" />
-              <span className="voice-ring voice-ring-two" />
-              <span className="voice-bars">
-                {[0.72, 1, 0.82, 1.16, 0.9].map((factor, index) => (
-                  <i key={index} style={{ height: `${Math.max(6, voiceLevel * 38 * factor)}px` }} />
-                ))}
+          <div className="mindmap-stage" aria-label="O.L.L.E. mindmap">
+            <span className="mindmap-line line-today" />
+            <span className="mindmap-line line-follow" />
+            <span className="mindmap-line line-family" />
+            <span className="mindmap-line line-projects" />
+            <span className="mindmap-line line-latest" />
+            <span className="mindmap-line line-dots" />
+
+            <button className="mindmap-node node-today" type="button" onClick={() => document.getElementById("today")?.scrollIntoView({ behavior: "smooth", block: "center" })}>
+              <span>Idag</span><strong>{radar.length}</strong>
+            </button>
+            <button className="mindmap-node node-follow" type="button" onClick={() => document.getElementById("follow")?.scrollIntoView({ behavior: "smooth", block: "center" })}>
+              <span>Följ upp</span><strong>{ongoing.length}</strong>
+            </button>
+            <button className="mindmap-node node-family" type="button" onClick={() => document.getElementById("family")?.scrollIntoView({ behavior: "smooth", block: "center" })}>
+              <span>Familj</span><strong>{relations.length}</strong>
+            </button>
+            <button className="mindmap-node node-projects" type="button" onClick={() => document.getElementById("projects")?.scrollIntoView({ behavior: "smooth", block: "center" })}>
+              <span>Hem & projekt</span><strong>{projects.length}</strong>
+            </button>
+            <button className="mindmap-node node-latest" type="button" onClick={() => document.getElementById("more")?.scrollIntoView({ behavior: "smooth", block: "center" })}>
+              <span>Senaste</span><strong>{items.length}</strong>
+            </button>
+            <button className="mindmap-node node-dots" type="button" onClick={() => document.getElementById("olle")?.scrollIntoView({ behavior: "smooth", block: "center" })}>
+              <span>Dots</span><strong>•••</strong>
+            </button>
+
+            <button className={`mindmap-olle ${voiceActive ? "is-listening" : ""}`} type="button" onClick={toggleVoice}>
+              <span className="olle-voice-orb" aria-hidden="true">
+                <span className="voice-ring voice-ring-one" />
+                <span className="voice-ring voice-ring-two" />
+                <span className="voice-bars">
+                  {[0.72, 1, 0.82, 1.16, 0.9].map((factor, index) => (
+                    <i key={index} style={{ height: `${Math.max(6, voiceLevel * 38 * factor)}px` }} />
+                  ))}
+                </span>
               </span>
-            </span>
-            <span className="olle-call-copy">
-              <strong>{voiceActive ? "Jag lyssnar…" : "Prata med O.L.L.E."}</strong>
-              <small>{voiceActive ? "Jag skriver det du säger. Tryck igen när du är klar — då sorterar jag det direkt." : "Tryck här och prata. Jag transkriberar och sorterar automatiskt till rätt del av hubben."}</small>
-            </span>
-            <span className="olle-voice-state">{voiceActive ? "AKTIV" : "RÖST"}</span>
-          </button>
+              <span className="mindmap-olle-copy">
+                <strong>{voiceActive ? "Jag lyssnar…" : "Prata med O.L.L.E."}</strong>
+                <small>{voiceActive ? "Tryck igen när du är klar." : "Jag fångar, förstår och sorterar."}</small>
+              </span>
+            </button>
+          </div>
         </section>
 
         <section className="hub-grid hub-grid-main">
@@ -357,7 +384,7 @@ export default function Home() {
             </div>
           </article>
 
-          <article className="hub-card hub-card-follow">
+          <article className="hub-card hub-card-follow" id="follow">
             <div className="hub-card-title">
               <div>
                 <span className="hub-icon amber">✓</span>
@@ -436,7 +463,7 @@ export default function Home() {
             {message && <div className="message success">{message}</div>}
           </article>
 
-          <article className="hub-card hub-card-projects">
+          <article className="hub-card hub-card-projects" id="projects">
             <div className="hub-card-title">
               <div>
                 <span className="hub-icon violet">⌂</span>
