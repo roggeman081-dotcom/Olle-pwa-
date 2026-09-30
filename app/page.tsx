@@ -86,12 +86,12 @@ export default function Home() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [voiceActive, setVoiceActive] = useState(false);
-  const [voiceLevel, setVoiceLevel] = useState(0.08);
+  const [voiceLevel, setVoiceLevel] = useState(0.08);\n  const [assistantReply, setAssistantReply] = useState("");
   const voiceStreamRef = useRef<MediaStream | null>(null);
   const voiceContextRef = useRef<AudioContext | null>(null);
   const voiceFrameRef = useRef<number | null>(null);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
-  const voiceTranscriptRef = useRef("");
+  const voiceTranscriptRef = useRef("");\n  const voiceActiveRef = useRef(false);
 
   useEffect(() => {
     void initializeDevice();
@@ -112,7 +112,7 @@ export default function Home() {
   }
 
   async function toggleVoice() {
-    if (voiceActive) {
+    if (voiceActiveRef.current) {
       const finalText = voiceTranscriptRef.current.trim();
       stopVoice();
       if (finalText) await saveCaptureText(finalText);
@@ -168,7 +168,7 @@ export default function Home() {
       };
 
       recognition.onend = () => {
-        if (voiceActive && recognitionRef.current === recognition) {
+        if (voiceActiveRef.current && recognitionRef.current === recognition) {
           try { recognition.start(); } catch {}
         }
       };
@@ -250,6 +250,18 @@ export default function Home() {
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Kunde inte ladda O.L.L.E.");
     }
+  }
+
+  function speakReply(reply: string) {
+    if (!reply || typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    try {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(reply);
+      utterance.lang = "sv-SE";
+      utterance.rate = 1.02;
+      utterance.pitch = 1;
+      window.speechSynthesis.speak(utterance);
+    } catch {}
   }
 
   async function saveCaptureText(clean: string) {
@@ -359,7 +371,7 @@ export default function Home() {
             </button>
 
             <div className={`mindmap-live-text ${voiceActive ? "is-live" : ""}`}>
-              {voiceActive ? (text || "Jag lyssnar…") : "Tryck på O.L.L.E. och börja prata"}
+              {voiceActive ? (text || "Jag lyssnar…") : (assistantReply || "Tryck på O.L.L.E. och börja prata")}
             </div>
           </div>
         </section>
