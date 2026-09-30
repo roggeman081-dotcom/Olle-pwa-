@@ -810,3 +810,136 @@ input:focus, textarea:focus {
   .olle-call{grid-template-columns:60px minmax(0,1fr);padding-right:12px}
   .olle-voice-state{display:none}
 }
+
+
+/* ===== O.L.L.E. Tesla-inspired Graphite V2 ===== */
+.hub-shell{
+  background:
+    radial-gradient(circle at 20% 0%, rgba(255,255,255,.09), transparent 26%),
+    radial-gradient(circle at 82% 12%, rgba(135,170,215,.09), transparent 24%),
+    linear-gradient(180deg,#24292f 0%,#1b2025 34%,#15191d 100%);
+}
+.hub-shell::after{
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.025),transparent 32%),
+    radial-gradient(ellipse at 50% 100%,rgba(255,255,255,.035),transparent 42%);
+}
+.hub-header{padding-top:26px}
+.hub-logo{color:#f7f8fa}
+.hub-logo span{color:#aeb6bf}
+.hub-tagline{color:#7e8791}
+
+.hub-hero{
+  border-color:rgba(255,255,255,.16);
+  background:
+    linear-gradient(145deg,rgba(55,61,68,.96),rgba(30,35,40,.98));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.09),
+    0 24px 54px rgba(0,0,0,.20);
+}
+.hub-hero-top p{color:#c5cbd2}
+.hub-clock{
+  background:rgba(255,255,255,.07);
+  border-color:rgba(255,255,255,.13);
+}
+.hub-clock span{color:#adb5be}
+.hub-clock strong{color:#fff}
+
+.olle-call{
+  border-color:rgba(255,255,255,.18);
+  background:
+    linear-gradient(135deg,rgba(61,68,76,.96),rgba(35,40,46,.98));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.09),
+    0 16px 34px rgba(0,0,0,.18);
+}
+.olle-call.is-listening{
+  border-color:rgba(160,193,235,.70);
+  box-shadow:
+    0 0 0 1px rgba(160,193,235,.10),
+    0 0 34px rgba(115,159,218,.18),
+    inset 0 1px 0 rgba(255,255,255,.10);
+}
+.olle-voice-orb{
+  background:
+    radial-gradient(circle at 50% 45%,#ffffff 0 5%,#cfe0f8 6% 11%,#7e9abd 18%,#3f4c5c 38%,#20262d 68%);
+  box-shadow:
+    inset 0 0 18px rgba(255,255,255,.14),
+    0 0 24px rgba(135,173,224,.22);
+}
+.voice-ring{border-color:rgba(202,220,246,.30)}
+.voice-bars i{
+  background:linear-gradient(180deg,#fff,#d4e3f7);
+  box-shadow:0 0 8px rgba(210,228,255,.60);
+}
+.olle-call-copy small{color:#b7c0ca}
+.olle-voice-state{
+  color:#b8c0c9;
+  border-color:rgba(255,255,255,.13);
+  background:rgba(255,255,255,.035);
+}
+
+.hub-card,
+.hub-card-today,
+.hub-card-follow,
+.hub-card-family,
+.hub-card-projects{
+  border-color:rgba(255,255,255,.13);
+  background:
+    linear-gradient(180deg,rgba(49,55,61,.92),rgba(34,39,44,.96));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.065),
+    0 14px 32px rgba(0,0,0,.14);
+}
+.hub-card-title h2{color:#f5f7f9}
+.hub-icon{
+  background:rgba(255,255,255,.075);
+  border-color:rgba(255,255,255,.09);
+}
+.hub-icon.blue,.hub-icon.amber,.hub-icon.green,.hub-icon.violet{color:#eef2f6}
+.hub-count{
+  color:#c3cad1;
+  border-color:rgba(255,255,255,.12);
+  background:rgba(255,255,255,.035);
+}
+.hub-card-body{border-top-color:rgba(255,255,255,.075)}
+.hub-row,.hub-person{border-bottom-color:rgba(255,255,255,.065)}
+.hub-row strong,.hub-person strong{color:#f5f7f9}
+.hub-row span,.hub-person span,.hub-empty,.hub-mini{color:#aeb7c0}
+.blue-ring,.amber-ring,.violet-ring{border-color:#c7d0da}
+
+.brain-card textarea{
+  background:rgba(255,255,255,.06);
+  border-color:rgba(255,255,255,.13);
+}
+.brain-card textarea::placeholder{color:#929ca6}
+.hub-send{
+  background:linear-gradient(180deg,#f7f8fa,#dfe4e9);
+  border-color:rgba(255,255,255,.30);
+  color:#111418;
+}
+.hub-latest-item{
+  background:rgba(255,255,255,.055);
+  border-color:rgba(255,255,255,.09);
+}
+.hub-latest-item span{color:#a0a9b3}
+
+.hub-bottom-nav{
+  border-color:rgba(255,255,255,.15);
+  background:rgba(33,38,43,.90);
+  box-shadow:0 10px 28px rgba(0,0,0,.20);
+}
+.hub-bottom-nav button{color:#d3d9df}
+.hub-bottom-nav small{color:#9ca5ae}
+.hub-bottom-nav .hub-nav-olle{
+  border-color:rgba(255,255,255,.20);
+  background:
+    radial-gradient(circle at 50% 38%,#ffffff 0 7%,#a9b8ca 11%,#53606e 33%,#2a3037 72%);
+  box-shadow:0 0 22px rgba(172,199,232,.16);
+}
+
+@media(min-width:760px){
+  .hub-app{max-width:1040px}
+  .hub-hero{padding:34px 34px 26px}
+  .hub-grid{gap:14px}
+}
